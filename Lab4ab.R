@@ -36,6 +36,8 @@ anova(out11) #Confirms that there is a difference between the groups
 out11.mod = data.frame(Fitted = fitted(out11), Residuals = resid(out11), Treatment = size12)
 ggplot(out11.mod, aes(Fitted, Residuals, colour = Treatment)) + geom_point() #Confirms visually variation diffences among samples by their visual spread from each other
 
+oneway.test(rich1~size12, var.equal = F) #Final test based on stat tree, Welch's
+
 square.between= function(x) (mean(x) - grand.mean.a)^2
 group.mean.a<- aggregate(.~size1, data=a, mean)
 as.factor(group.mean.a$size1)
@@ -70,7 +72,7 @@ pwr.anova.test(k=5, n= 20, f=cohen.f, sig.level = 0.05, power = NULL)
 #Sqrt Transformation, does not fix unequal variance
 dev.off()
 sqrtrich1<-sqrt(rich1)
-boxplot(sqrtrich1~size12,xlab="Sizes",ylab="Species") #Still visually non-linear
+boxplot(sqrtrich1~size12,xlab="Sizes",ylab="Species", main = "sqrt dataset 1") #Still visually non-linear
 
 out11sqrt=aov(sqrtrich1~size12)
 summary(out11sqrt) #Size is still significantly different among samples
@@ -87,9 +89,9 @@ plot(out11sqrt) #Everything looks about normal, but scale-location looks a littl
 bartlett.test(sqrtrich1~size12) #p-value less than 0.05 means unequal variance
 #Unequal variance here, still
 
-#Welch's test is the final test to run given the stat tree
+oneway.test(sqrtrich1~size12, var.equal = F) #Final test based on stat tree, Welch's
 
-t.test(sqrtrich1, y=NULL, c(alternative = "greater"), paired=FALSE, var.equal= F)
+
 #True mean is greater than zero
 pairwise.t.test(rich1,size12,p.adj="bonf")#Good way to see pairwise differences by group on raw data
 pairwise.t.test(sqrtrich1,size12,p.adj="bonf") #Good way to see pairwise differences by group on transformed data
@@ -132,9 +134,12 @@ shapiro.test(out22$resid)
 par(mfrow = c(2, 2))  
 plot(out22, main = "dataset 2")
 
-bartlett.test(rich2~size22)
+bartlett.test(rich2~size22) #p-value less than 0.05 means unequal variance
 
-anova(out22)
+summary(aov(lm(rich2~size22)))#ANOVA on dataset 2, Final test
+
+out22.mod = data.frame(Fitted = fitted(out22), Residuals = resid(out22), Treatment = size22)
+ggplot(out22.mod, aes(Fitted, Residuals, colour = Treatment)) + geom_point()
 
 square.between= function(x) (mean(x) - grand.mean.b)^2
 group.mean.b<- aggregate(.~size2, data=b, mean)
@@ -170,7 +175,7 @@ cohen.f2=sqrt((SSG/N) / (SSE/(N-k))) #Equivalent to by hand
 
 dev.off()
 sqrtrich2<-sqrt(rich2)
-boxplot(sqrtrich2~size22,xlab="Sizes",ylab="Species") #Visually linear
+boxplot(sqrtrich2~size22,xlab="Sizes",ylab="Species", main = "sqrt dataset 2") #Visually linear
 
 out22sqrt=aov(sqrtrich2~size22)
 summary(out22sqrt) #Size is still significantly different among samples
@@ -187,14 +192,14 @@ bartlett.test(sqrtrich2~size22) #p-value less than 0.05 means unequal variance
 #Equal variance here
 
 #ANOVA test is the final test to run given the stat tree
-aov(sqrtrich2~size22)
+summary(lm(aov(sqrtrich2~size22)))
 
-pairwise.t.test(rich2,size22,p.adj="bonf")#Good way to see pairwise differences by group on raw data
-pairwise.t.test(sqrtrich2,size22,p.adj="bonf") #Good way to see pairwise differences by group on transformed data
+pairwise.t.test(rich2,size22,p.adj="bonf") #Good way to see pairwise differences by group on raw data
+pairwise.t.test(sqrtrich2,size22,p.adj="bonf")  #Good way to see pairwise differences by group on transformed data
 
-out2<-HSD.test(aov(rich2~size22),"size22",group=T,console=T) #Compare sig differences between raw and transformed data
+out2<-HSD.test(aov(rich2~size22),"size22",group=T,console=T)  #Compare sig differences between raw and transformed data
 sqrtout2<-HSD.test(aov(sqrtrich2~size22),"size22",group=T,console=T)
-SNK.test(aov(rich2~size22),"size22",group=T,console=T)
+SNK.test(aov(rich2~size22),"size22",group=T,console=T) 
 SNK.test(aov(sqrtrich2~size22),"size22",group=T,console=T)
 
 output3=lm(sqrtrich2~size22)
